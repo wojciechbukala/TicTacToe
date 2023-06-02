@@ -1,209 +1,102 @@
 #include "sim_player.hpp"
 
 #include <algorithm>
+#include <limits>
 
-int maximum_int = std::numeric_limits<int>::max();
+const int max_int = std::numeric_limits<int>::max();
 
-Move Simulated_player::make_move(Board& board, char sign)
+int Simulated_player::evaluate(const Board& board) 
 {
-    char game_state = board.win_condition();
-    if(game_state == 'x')
-    {
-        best_move = Move(1, 0, 0);
-        return best_move;
-    }
-    else if(game_state == 'o')
-    {
-        best_move = Move(-1, 0, 0);
-        return best_move;
-    }
-    else if(board.full())
-    {
-        best_move = Move(0, 0, 0);
-        return best_move;
-    } 
+    char winner = board.win_condition();
 
-
-    Move best_move = ((sign == 'o') ? -maximum_int : maximum_int);
-    for(unsigned int i = 0; i < board.size; ++i)
-    {
-        for(unsigned int j = 0; j < board.size; ++j)
-        {
-            if(board.empty_index(i, j))
-            {
-                board.insert(sign, i, j);
-
-                Move move = make_move(board, (sign == 'x') ? 'o' : 'x');    
-
-                if ((sign == 'x' && move.score > best_move.score) ||
-                        (sign == 'o' && move.score < best_move.score)) {
-                        best_move.column = i;
-                        best_move.row = j;
-                        best_move.score = move.score;
-                    }
-
-                board.insert(' ', i, j);
-            }
-        }
-    } 
-    return best_move;
-} 
-/* class Player {
-public:
-    Player(char sign) : _sign(sign) {}
-
-    void makeMove(Board& board) {
-        // Call the Minimax algorithm to determine the best move
-        Move bestMove = minimax(board, _sign);
-
-        // Make the best move on the board
-        board.insert(_sign, bestMove.column, bestMove.row);
+    if (winner == 'x') {
+        return LOSS;
+    } else if (winner == 'o') {
+        return WIN;
     }
 
-private:
-    struct Move {
-        unsigned int column;
-        unsigned int row;
-        int score;
-    };
+    if (board.full()) {
+        return DRAW;
+    }
 
-    char _sign;
+    return DRAW;
+}
 
-    Move minimax(Board& board, char player) {
-        // Base cases: check for terminal states
-        char result = board.win_condition();
-        if (result == 'x') {
-            return {0, 0, -1}; // x wins, return a negative score
-        } else if (result == 'o') {
-            return {0, 0, 1}; // o wins, return a positive score
-        } else if (board.full()) {
-            return {0, 0, 0}; // draw, return score of 0
-        }
 
-        // Initialize the best move with a low score for the maximizing player (x)
-        Move bestMove = {0, 0, (player == 'x') ? -1000 : 1000};
+int Simulated_player::minimax(Board& board, int depth, bool isMaximizer) {
+    int score = evaluate(board);
 
-        // Try all possible moves and recursively evaluate the resulting game states
-        for (unsigned int i = 0; i < board.size; ++i) {
-            for (unsigned int j = 0; j < board.size; ++j) {
+    if (score == WIN) 
+    {
+        //std::cout << "DUPA 1" << std::endl;
+        return score - depth;
+    }
+
+    if (score == LOSS) 
+    {
+        //std::cout << "DUPA 2" << std::endl;
+        return score + depth;
+    }
+
+    if (board.full()) 
+    {
+        //std::cout << "DUPA 3" << std::endl;
+        return DRAW;
+    }
+
+    if (isMaximizer) {
+        int bestScore = -max_int;
+
+        for (unsigned int i = 0; i < board.size; i++) {
+            for (unsigned int j = 0; j < board.size; j++) {
                 if (board.empty_index(i, j)) {
-                    // Make a move for the current player
-                    board.insert(player, i, j);
-
-                    // Recursively call minimax for the opponent
-                    Move move = minimax(board, (player == 'x') ? 'o' : 'x');
-
-                    // Update the best move based on the player's turn
-                    if ((player == 'x' && move.score > bestMove.score) ||
-                        (player == 'o' && move.score < bestMove.score)) {
-                        bestMove.column = i;
-                        bestMove.row = j;
-                        bestMove.score = move.score;
-                    }
-
-                    // Undo the move
+                    board.insert('o', i, j);
+                    bestScore = std::max(bestScore, minimax(board, depth + 1, !isMaximizer));
                     board.insert(' ', i, j);
                 }
             }
         }
 
-        return bestMove;
-    }
-}; 
-
-
-Move Simulated_player::make_move(Board& board, char sign)
-{
-    char game_state = board.win_condition();
-    if(game_state == 'x')
-    {
-        best_move = Move(1, 0, 0);
-        return best_move;
-    }
-    else if(game_state == 'o')
-    {
-        best_move = Move(-1, 0, 0);
-        return best_move;
-    }
-    else if(board.full())
-    {
-        best_move = Move(0, 0, 0);
-        return best_move;
-    } 
-
-
-    Move best_move = ((sign == 'o') ? -maximum_int : maximum_int);
-    for(unsigned int i = 0; i < board.size; ++i)
-    {
-        for(unsigned int j = 0; j < board.size; ++j)
-        {
-            if(board.empty_index(i, j))
-            {
-                board.insert(sign, i, j);
-
-                Move move = make_move(board, (sign == 'x') ? 'o' : 'x');    
-
-                if ((sign == 'x' && move.score > best_move.score) ||
-                        (sign == 'o' && move.score < best_move.score)) {
-                        best_move.column = i;
-                        best_move.row = j;
-                        best_move.score = move.score;
-                    }
-
-                board.insert(' ', i, j);
-            }
-        }
-    } 
-    return best_move;
-} 
-
-int maximum_int = std::numeric_limits<int>::max();
-
-void Simulated_player::best_move(Board& board, char sign)
-{
-/*     char game_state = board.win_condition();
-    if(game_state == 'x')
-    {
-        best_move = Move(1, 0, 0);
-        return best_move;
-    }
-    else if(game_state == 'o')
-    {
-        best_move = Move(-1, 0, 0);
-        return best_move;
-    }
-    else if(board.full())
-    {
-        best_move = Move(0, 0, 0);
-        return best_move;
-    }  
-
-    int score;
-    int best_score = -maximum_int;
-    for(unsigned int i = 0; i < board.size; ++i)
-    {
-        for(unsigned int j = 0; j < board.size; ++j)
-        {
-            if(board.empty_index(i, j))
-            {
-                board.insert(sign, i, j);
-                score = minimax(borad);
-
-                if(score > best_score)
-                {
-                    best_score = score;
+        return bestScore;
+    } else {
+        int bestScore = max_int;
+        //std::cout << "DUPA" << std::endl;
+        for (unsigned int i = 0; i < board.size; i++) {
+            for (unsigned int j = 0; j < board.size; j++) {
+                if (board.empty_index(i, j)) {
+                    board.insert('x', i, j);
+                    bestScore = std::min(bestScore, minimax(board, depth + 1, !isMaximizer));
+                    board.insert(' ', i, j);
                 }
-
-                board.insert(' ', i, j);
             }
         }
-    } 
-    return best_move;
-} 
 
-int Simulated_player::minimax(Board &board)
-{
-    return 1;
+        return bestScore;
+    }
 }
 
-*/
+Move Simulated_player::findBestMove(Board& board) 
+{
+    int bestScore = -1000;
+    Move bestMove;
+
+    for (unsigned int i = 0; i < board.size; i++) {
+        for (unsigned int j = 0; j < board.size; j++) {
+            if (board.empty_index(i, j)) 
+            {
+                //std::cout << "Dupa" << std::endl; 
+                board.insert('o', i, j);
+                int moveScore = minimax(board, 0, false);
+                board.insert(' ', i, j);
+
+                if (moveScore > bestScore) {
+                    bestScore = moveScore;
+                    bestMove.row = i;
+                    bestMove.col = j;
+                }
+            }
+        }
+    }
+
+    return bestMove;
+}

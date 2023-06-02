@@ -1,36 +1,32 @@
 #include "board.hpp"
 
-Board::Board()
+bool Board::empty_index(unsigned int r, unsigned int c) const
 {
-    size = 3;
-    blank_board();
+    if(board[r][c] == ' ') return true;
+    else return false;
 }
 
-Board::~Board()
+bool Board::full() const 
 {
-    _board.clear();
-}
-
-Board::Board(unsigned int s, unsigned int t_w)
-{
-    size = s;
-    to_win = t_w;
-   blank_board();
-}
-
-void Board::blank_board()
-{
-    for(unsigned int i=0; i<size; ++i)
+    for (unsigned int i = 0; i < size; i++) 
     {
-        _board.push_back(std::vector<char>());
-        for(unsigned int j=0; j<size; ++j)
+        for (unsigned int j = 0; j < size; j++) 
         {
-            _board[i].push_back(' ');
+            if (board[i][j] == ' ') 
+            {
+                return false;
+            }
         }
     }
+    return true;
 }
 
-void Board::print()
+void Board::insert(char sign, unsigned int row, unsigned int column) 
+{
+    board[row][column] = sign;
+}
+
+void Board::print() const
 {
     for(unsigned int i=0; i<size; ++i)
     {
@@ -43,12 +39,13 @@ void Board::print()
 
         for(unsigned int j=0; j<size; ++j)
         {
-            std::cout << "| " << _board[i][j] << ' ';
+            std::cout << "| " << board[i][j] << ' ';
         }
 
         std::cout << '|' << std::endl;
     }
-    
+
+
     for(unsigned int k=0; k<4*size+1; ++k)
     {
         std::cout << '-';
@@ -57,163 +54,218 @@ void Board::print()
     std::cout << std::endl;
 }
 
-bool Board::empty_index(unsigned int r, unsigned int c)
-{
-    if(_board[r][c] == ' ') return true;
-    else return false;
-}
 
-bool Board::full()
+/* char Board::win_condition() const 
 {
-    if(inserted == (size*size))
+    // Sprawdzenie wierszy
+    for (unsigned int i = 0; i < size; i++) 
     {
-        return true;
-    }
-    return false;
-}
-
-
-void Board::insert(char sign, unsigned int column, unsigned int row)
-{   
-    _board[column-1][row-1] = sign;
-    ++inserted;
-}
-
-char Board::win_condition()
-{
-    unsigned int x_counter = 1;
-    unsigned int o_counter = 1;
-    char winner = 'n';
-
-    //row
-    unsigned int k;
-    for(unsigned int i=0; i<size; ++i)
-    {
-        for(unsigned int j=0; j<size; ++j)
-        {
-            k = j;
-            while(k < size && _board[i][k] == _board[i][k+1])
-            {
-                if(_board[i][k] == 'o' && _board[i][k+1] == 'o')
-                {
-                    o_counter++;
-                }
-                if(_board[i][k] == 'x' && _board[i][k+1] == 'x')
-                {
-                    x_counter++;
-                }
-                k++;
-            }
-
-            if(o_counter == to_win)
-            {
-                winner = 'o';
-            }
-            else
-            {
-                o_counter = 1;
-            }
-
-            if(x_counter == to_win)
-            {
-                winner = 'x';
-            }
-            else
-            {
-                x_counter = 1;
-            }
-
-        }
-
+        char symbol = board[i][0];
         
+        if (symbol != ' ') 
+        {
+            unsigned int count = 1;
+
+            for (unsigned int j = 1; j < size; j++) 
+            {
+                if (board[i][j] == symbol) 
+                {
+                    count++;
+
+                    if (count == to_win)
+                        return symbol;
+                } 
+                else 
+                {
+                    symbol = board[i][j];
+                    count = 1;
+                }
+            }
+        }
     }
 
-    //column
-    unsigned int m;
-    for(unsigned int i=0; i<size; ++i)
+    // Sprawdzenie kolumn
+    for (unsigned int i = 0; i < size; i++) 
     {
-        for(unsigned int j=0; j<size; ++j)
+        char symbol = board[0][i];
+        
+        if (symbol != ' ') 
         {
-            m = j;
+            unsigned int count = 1;
+
+            for (unsigned int j = 1; j < size; j++) 
+            {
+                if (board[j][i] == symbol) 
+                {
+                    count++;
+
+                    if (count == to_win)
+                        return symbol;
+                } 
+                else 
+                {
+                    symbol = board[j][i];
+                    count = 1;
+                }
+            }
+        }
+    }
+
+    // Sprawdzenie przekątnej 
+    for (unsigned int i = 0; i <= size - to_win; i++) 
+    {
+        for (unsigned int j = 0; j <= size - to_win; j++) 
+        {
+            char symbol = board[i][j];
             
-            while(m < size-1 && _board[m][i] == _board[m+1][i])
+            if (symbol != ' ') 
             {
-                if(_board[m][i] == 'o' && _board[m+1][i] == 'o')
-                {
-                    o_counter++;
-                }
-                if(_board[m][i] == 'x' && _board[m+1][i] == 'x')
-                {
-                    x_counter++;
-                }
-                m++;
-            } 
-            if(o_counter == to_win)
-            {
-                winner = 'o';
-            }
-            else
-            {
-                o_counter = 1;
-            }
+                bool win = true;
 
-            if(x_counter == to_win)
-            {
-                winner = 'x';
-            }
-            else
-            {
-                x_counter = 1;
-            }
+                for (unsigned int k = 1; k < to_win; k++) 
+                {
+                    if (board[i + k][j + k] != symbol) 
+                    {
+                        win = false;
+                        break;
+                    }
+                }
 
+                if (win)
+                    return symbol;
+            }
         }
     }
 
-
-    //diagonally
-    unsigned int n, l;
-    for(unsigned int i=0; i<size; ++i)
+    // Sprawdzenie przekątnej /
+    for (unsigned int i = 0; i <= size - to_win; i++) 
     {
-        for(unsigned int j=0; j<size; ++j)
+        for (unsigned int j = to_win - 1; j < size; j++) 
         {
-            l = j;
-            n = i;
-            while(n < size-1 && l < size && _board[n][l] == _board[n+1][l+1])
+            char symbol = board[i][j];
+            
+            if (symbol != ' ') 
             {
-                if(_board[n][l] == 'o' && _board[n+1][l+1] == 'o')
-                {
-                    o_counter++;
-                    //std::cout << "O++" << std::endl;
-                }
-                if(_board[n][l] == 'x' && _board[n+1][l+1] == 'x')
-                {
-                    x_counter++;
-                }
-                ++n;
-                ++l;
-            } 
-            if(o_counter == to_win)
-            {
-                winner = 'o';
-            }
-            else
-            {
-                o_counter = 1;
-            }
+                bool win = true;
 
-            if(x_counter == to_win)
-            {
-                winner = 'x';
-            }
-            else
-            {
-                x_counter = 1;
-            }
+                for (unsigned int k = 1; k < to_win; k++) 
+                {
+                    if (board[i + k][j - k] != symbol) 
+                    {
+                        win = false;
+                        break;
+                    }
+                }
 
+                if (win)
+                    return symbol;
+            }
         }
     }
 
+    return ' ';
+}
+ */
 
+char Board::win_condition() const {
 
-    return winner;
+    unsigned int x_counter, o_counter;
+
+    // poziomo
+    for (unsigned int i = 0; i < size; i++) {
+        x_counter = o_counter = 1;
+        for (unsigned int y = 0; y < size - 1; y++) {
+            if (board[i][y] == board[i][y + 1]) {
+                if (board[i][y] == 'x')
+                    x_counter++;
+                else if (board[i][y] == 'o')
+                    o_counter++;
+                if (x_counter == to_win)
+                    return 'x';
+                if (o_counter == to_win)
+                    return 'o';
+            }
+        }
+    }
+
+    // pionowo
+    for (unsigned int y = 0; y < size; y++) {
+        x_counter = o_counter = 1;
+        for (unsigned int i = 0; i < size - 1; i++) {
+            if (board[i][y] == board[i + 1][y]) {
+                if (board[i][y] == 'x')
+                    x_counter++;
+                else if (board[i][y] == 'o')
+                    o_counter++;
+                if (x_counter == to_win)
+                    return 'x';
+                if (o_counter == to_win)
+                    return 'o';
+            }
+        }
+    }
+
+    // po przekatnych
+    for (unsigned int i = 1; i < size - to_win + 1; i++) {
+        x_counter = o_counter = 1;
+        for (unsigned int y = 0; y < (size - i - 1); y++) {
+            if (board[y][i + y] == board[y + 1][i + y + 1]) {
+                if (board[y][i + y] == 'x')
+                    x_counter++;
+                else if (board[y][i + y] == 'o')
+                    o_counter++;
+                if (x_counter == to_win)
+                    return 'x';
+                if (o_counter == to_win)
+                    return 'o';
+            }
+        }
+    }
+    for (unsigned int i = 0; i < size - to_win + 1; i++) {
+        x_counter = o_counter = 1;
+        for (unsigned int y = 0; y < (size - i - 1); y++) {
+            if (board[i + y][y] == board[i + y + 1][y + 1]) {
+                if (board[i + y][y] == 'x')
+                    x_counter++;
+                else if (board[i + y][y] == 'o')
+                    o_counter++;
+                if (x_counter == to_win)
+                    return 'x';
+                if (o_counter == to_win)
+                    return 'o';
+            }
+        }
+    }
+    for (unsigned int i = 0; i < size - to_win + 1; i++) {
+        x_counter = o_counter = 1;
+        for (unsigned int y = 0; y < (size - i - 1); y++) {
+            if (board[size - 1 - y][i + y] == board[size - 1 - (y + 1)][i + y + 1]) {
+                if (board[size - 1 - y][i + y] == 'x')
+                    x_counter++;
+                else if (board[size - 1 - y][i + y] == 'o')
+                    o_counter++;
+                if (x_counter == to_win)
+                    return 'x';
+                if (o_counter == to_win)
+                    return 'o';
+            }
+        }
+    }
+    for (unsigned int i = 1; i < size - to_win + 1; i++) {
+        x_counter = o_counter = 1;
+        for (unsigned int y = 0; y < (size - i - 1); y++) {
+            if (board[size - 1 - i - y][y] == board[size - i - y - 2][y + 1]) {
+                if (board[size - 1 - i - y][y] == 'x')
+                    x_counter++;
+                else if (board[size - 1 - i - y][y] == 'o')
+                    o_counter++;
+                if (x_counter == to_win)
+                    return 'x';
+                if (o_counter == to_win)
+                    return 'o';
+            }
+        }
+    }
+
+    return ' ';
 }

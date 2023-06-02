@@ -3,40 +3,25 @@
 
 #include "board.hpp"
 
-class Move
+struct Move 
 {
-    public:
-        unsigned int column, row;
-        int score;
-        Move(int s, unsigned int r = 0, unsigned int c = 0)
-        {
-            score = s;
-            row = r;
-            column = c;
-        }
-        Move()
-        {
-            score = 0;
-            row = 0;
-            column = 0;
-        }
+    int row;
+    int col;
 };
 
-class Simulated_player
+class Simulated_player : public Move
 {
-    public:
+    private:
+        int evaluate(const Board& board);
+        int minimax(Board& board, int depth, bool isMaximizer);
         char sign;
-        Simulated_player(char s)
-        {
-            sign = s;
-        }
-        Simulated_player()
-        {
-            sign = 'n';
-        }
-       Move make_move(Board& board, char sign);
-        Move best_move;
+    public:
+        Simulated_player() {};
+        Simulated_player(char ai_sign) : sign(ai_sign) {};
+        Move findBestMove(Board& board);
+
 };
+
 
 
 

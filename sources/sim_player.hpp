@@ -13,12 +13,17 @@ class Simulated_player : public Move
 {
     private:
         int evaluate(const Board& board);
-        int minimax(Board& board, int depth, bool isMaximizer);
-        char sign;
+        int minimax(Board& board, int depth, int alpha, int beta, bool isMaximizer); 
     public:
         Simulated_player() {};
-        Simulated_player(char ai_sign) : sign(ai_sign) {};
+        Simulated_player(char ai_sign, int m_depth)
+        {
+            sign = ai_sign;
+            Max_Depth = m_depth-1;
+        }
         Move findBestMove(Board& board);
+        char sign;
+        int Max_Depth;
 
 };
 

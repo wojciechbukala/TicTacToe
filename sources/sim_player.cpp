@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <chrono>
 
 const int max_int = std::numeric_limits<int>::max();
 
@@ -23,50 +24,68 @@ int Simulated_player::evaluate(const Board& board)
 }
 
 
-int Simulated_player::minimax(Board& board, int depth, bool isMaximizer) {
+int Simulated_player::minimax(Board& board, int depth, int alpha, int beta, bool isMaximizer) 
+{
     int score = evaluate(board);
-
     if (score == WIN) 
     {
-        //std::cout << "DUPA 1" << std::endl;
         return score - depth;
     }
 
     if (score == LOSS) 
     {
-        //std::cout << "DUPA 2" << std::endl;
         return score + depth;
     }
 
-    if (board.full()) 
+    if (board.full() || depth == Max_Depth) 
     {
-        //std::cout << "DUPA 3" << std::endl;
         return DRAW;
     }
 
-    if (isMaximizer) {
+    if (isMaximizer) 
+    {
         int bestScore = -max_int;
 
-        for (unsigned int i = 0; i < board.size; i++) {
-            for (unsigned int j = 0; j < board.size; j++) {
-                if (board.empty_index(i, j)) {
+        for (unsigned int i = 0; i < board.size; i++) 
+        {
+            for (unsigned int j = 0; j < board.size; j++) 
+            {
+                if (board.empty_index(i, j)) 
+                {
                     board.insert('o', i, j);
-                    bestScore = std::max(bestScore, minimax(board, depth + 1, !isMaximizer));
+                    int currentScore = minimax(board, depth + 1, alpha, beta, !isMaximizer);
+                    bestScore = std::max(bestScore, currentScore);
+                    alpha = std::max(alpha, bestScore);
                     board.insert(' ', i, j);
+                    if (beta <= alpha) 
+                    {
+                        return alpha;  
+                    }
                 }
             }
         }
 
         return bestScore;
-    } else {
+    } 
+    else 
+    {
         int bestScore = max_int;
-        //std::cout << "DUPA" << std::endl;
-        for (unsigned int i = 0; i < board.size; i++) {
-            for (unsigned int j = 0; j < board.size; j++) {
-                if (board.empty_index(i, j)) {
+
+        for (unsigned int i = 0; i < board.size; i++) 
+        {
+            for (unsigned int j = 0; j < board.size; j++) 
+            {
+                if (board.empty_index(i, j)) 
+                {
                     board.insert('x', i, j);
-                    bestScore = std::min(bestScore, minimax(board, depth + 1, !isMaximizer));
+                    int currentScore = minimax(board, depth + 1, alpha, beta, !isMaximizer);
+                    bestScore = std::min(bestScore, currentScore);
+                    beta = std::min(beta, bestScore);
                     board.insert(' ', i, j);
+                    if (beta <= alpha) 
+                    {
+                        return beta;  
+                    }
                 }
             }
         }
@@ -83,10 +102,9 @@ Move Simulated_player::findBestMove(Board& board)
     for (unsigned int i = 0; i < board.size; i++) {
         for (unsigned int j = 0; j < board.size; j++) {
             if (board.empty_index(i, j)) 
-            {
-                //std::cout << "Dupa" << std::endl; 
+            { 
                 board.insert('o', i, j);
-                int moveScore = minimax(board, 0, false);
+                int moveScore = minimax(board, 0, -max_int, max_int, false);
                 board.insert(' ', i, j);
 
                 if (moveScore > bestScore) {

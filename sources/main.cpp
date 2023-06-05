@@ -1,16 +1,27 @@
 #include <iostream>
 #include <vector>
+#include <chrono>
 #include "board.hpp"
 #include "sim_player.hpp"
 
 using namespace std;
 
 
-
 int main() 
 {
-    Board board(3,3);
-    Simulated_player pl('o');
+    unsigned int board_size, Depth, To_win;
+
+    std::cout << "Gra kolko i krzyzyk. Czlowiek vs AI" << std::endl << std::endl;
+    std::cout << "Podaj wielkosc planszy: ";
+    std::cin >> board_size;
+    std::cout << std::endl << "Podaj ilosc punktow do wygranej: ";
+    std::cin >> To_win;
+    std::cout << std::endl << "Podaj glebokosc rekurencji: ";
+    std::cin >> Depth;
+    std::cout << std::endl;
+
+    Board board(board_size,To_win);
+    Simulated_player pl('o',Depth);
 
     while (true) {
         int x, y;
@@ -34,8 +45,11 @@ int main()
             break;
         }
         
-
+        auto start = std::chrono::high_resolution_clock::now();
         Move bestMove = pl.findBestMove(board);
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(end- start).count();
+        std::cout << "Czas wykonywania ruchu: "<< duration << " sekund " << std::endl;
         board.insert('o', bestMove.row, bestMove.col);
         board.print();
 
